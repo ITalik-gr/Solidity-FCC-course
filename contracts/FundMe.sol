@@ -2,28 +2,32 @@
 
 pragma solidity ^0.8.0;
 
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "./PriceConverter.sol";
 
 contract FundMe {
+    using PriceConverter for uint256;
     uint public minimumUsd = 50 * 1e18;
 // Треба. Щоб надсилати можна було тіки більше 50 USD. 
-    function fund() public payable {
-        require(getConversionRate(msg.value) >= minimumUsd, "Didn`t send enough");
+
+    mapping(address => uint) public addressToAmountFunder;
+    address[] public funders;
+
+
+    function fund() public payable { 
+        require(msg.value.getConversionRate() >= minimumUsd, "Didn`t send enough");
+        funders.push(msg.sender);
+        addressToAmountFunder[msg.sender] += msg.value;
     }
 
-    function getPrice() public view returns(uint) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        return uint(price * 1e10);
+    function withdrawn() public {
+        for (uint i = 0; i < funders.length; i++) { // ресет мапінг для кожного фандера
+            address funder = funders[i];
+            addressToAmountFunder[funder] = 0;
+        }
+        // reset the array
+        funders = new address[](0); // заміняємо весь масив на новий пустий
+
+        (bool callSuccsess,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccsess, "Call failed");
     }
-
-    function getConversionRate(uint256 ethAmount) public view returns(uint) {
-        uint ethPrice = getPrice();
-        uint ethPriceInUsd = (ethPrice * ethAmount) / 1e18;
-        return ethPriceInUsd;
-    }
-
-    // function withdrawn() {
-
-    // }
 }
