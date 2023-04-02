@@ -1,7 +1,6 @@
 {
   "name": "solidity32h",
   "version": "1.0.0",
-  "description": "",
   "main": "FundMe.sol",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,5 +17,6 @@
   "homepage": "https://github.com/ITalik-gr/Solidity-FCC-course#readme",
   "dependencies": {
     "@chainlink/contracts": "^0.6.1"
-  }
+  },
+  "description": ""
 }
